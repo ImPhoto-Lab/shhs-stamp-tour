@@ -19,6 +19,7 @@
   const service = window.StampTourService;
   let active = false, ending = false, stops = [];
   let scannerInstance = null, isProcessingScan = false, lastScanned = "", lastScannedTime = 0;
+  let scannerTimer = null, scannerVersion = 0, scannerStart = null, scannerVideo = null, scannerCleanup = Promise.resolve();
   let feedbackTimer = null;
 
   // 기본 상태 초기화
@@ -84,60 +85,83 @@
   }
 
   // ---------------------------------------------------------
-  // 📷 카메라 QR 스캐너 컨트롤러
+  // 📷 카메라 QR 스캐너 컨트롤러 (단일 인스턴스 & 레이스 컨디션 원천 차단)
   // ---------------------------------------------------------
   function stopBoothScanner() {
-    if (scannerInstance) {
-      try {
-        const isScanning = scannerInstance.isScanning || (scannerInstance.getState && scannerInstance.getState() === 2);
-        if (isScanning) {
-          scannerInstance.stop().catch(() => {}).finally(() => {
-            try { scannerInstance.clear(); } catch (_) {}
-            scannerInstance = null;
-          });
-          return;
-        }
-      } catch (_) {}
-      try { scannerInstance.clear(); } catch (_) {}
-      scannerInstance = null;
+    ++scannerVersion;
+    if (scannerTimer) { clearTimeout(scannerTimer); scannerTimer = null; }
+    const old = scannerInstance, pending = scannerStart, video = scannerVideo;
+    scannerInstance = null; scannerStart = null; scannerVideo = null;
+    if (video && video.srcObject) {
+      video.srcObject.getTracks().forEach(track => { try { track.stop(); } catch (_) {} });
     }
+    if (!old) return scannerCleanup;
+    scannerCleanup = (async () => {
+      try { await pending; } catch (_) {}
+      try {
+        const isScanning = old.isScanning || (old.getState && old.getState() === 2);
+        if (isScanning) await old.stop();
+      } catch (_) {}
+      try { old.clear(); } catch (_) {}
+    })();
+    return scannerCleanup;
   }
 
   function startBoothScanner() {
     stopBoothScanner();
-    setTimeout(() => {
+    const token = scannerVersion;
+    scannerTimer = setTimeout(async () => {
+      scannerTimer = null;
+      await scannerCleanup;
+      if (token !== scannerVersion || state.boothMode !== "scan") return;
       const readerEl = panel.querySelector("#ft-booth-reader");
-      if (!readerEl) return;
+      if (!readerEl || !readerEl.isConnected) return;
       if (typeof window.Html5Qrcode !== "function") {
         const statusEl = panel.querySelector("#ft-scan-status");
         if (statusEl) statusEl.textContent = "스캐너 라이브러리를 불러오지 못했어요. 학번 직접 입력을 이용해 주세요.";
         return;
       }
 
+      // 혹시 남아있는 <video> DOM이 있다면 완전히 정리 후 1개만 마운트
+      readerEl.innerHTML = "";
       try {
         const instance = new Html5Qrcode("ft-booth-reader");
         scannerInstance = instance;
-        const config = { fps: 15, qrbox: { width: 220, height: 220 } };
+        const qrConfig = { fps: 15, qrbox: { width: 220, height: 220 } };
 
-        instance.start(
-          { facingMode: "environment" },
-          config,
-          onQrDetected,
-          () => {}
-        ).catch(() => {
-          // 후면 카메라 실패 시 전면 카메라 시도
-          instance.start(
-            { facingMode: "user" },
-            config,
-            onQrDetected,
-            () => {}
-          ).catch(() => {
-            const statusEl = panel.querySelector("#ft-scan-status");
-            if (statusEl) statusEl.textContent = "카메라 권한을 확인해 주세요. 학번 직접 입력을 이용할 수 있어요.";
-          });
-        });
+        const startWithFallback = async () => {
+          try {
+            await instance.start({ facingMode: "environment" }, qrConfig, onQrDetected, () => {});
+          } catch (_) {
+            if (token !== scannerVersion) return;
+            readerEl.innerHTML = "";
+            await instance.start({ facingMode: "user" }, qrConfig, onQrDetected, () => {});
+          }
+        };
+
+        scannerStart = startWithFallback();
+        await scannerStart;
+
+        const video = readerEl.querySelector("video");
+        if (token !== scannerVersion || !readerEl.isConnected || state.boothMode !== "scan") {
+          if (video && video.srcObject) {
+            video.srcObject.getTracks().forEach(track => { try { track.stop(); } catch (_) {} });
+          }
+          try {
+            if (instance.isScanning || (instance.getState && instance.getState() === 2)) await instance.stop();
+            instance.clear();
+          } catch (_) {}
+          if (scannerInstance === instance) scannerInstance = null;
+          return;
+        }
+        scannerVideo = video;
       } catch (e) {
-        console.error("Scanner start error:", e);
+        if (token === scannerVersion) {
+          const statusEl = panel.querySelector("#ft-scan-status");
+          if (statusEl && statusEl.isConnected) {
+            statusEl.textContent = "카메라 권한을 확인해 주세요. 학번 직접 입력을 이용할 수 있어요.";
+          }
+        }
       }
     }, 100);
   }
@@ -159,7 +183,8 @@
     } finally {
       setTimeout(() => {
         isProcessingScan = false;
-        if (statusEl && statusEl.isConnected) statusEl.textContent = "학생의 스탬프 QR 코드를 프레임에 맞춰주세요.";
+        const waitingText = window.APP_CONFIG?.booth?.scanStatusWaiting || "학생의 스탬프 QR 코드를 프레임에 맞춰주세요";
+        if (statusEl && statusEl.isConnected) statusEl.textContent = waitingText;
       }, 1500);
     }
   }
@@ -207,13 +232,10 @@
         state.visitors = count;
         state.recentVisitors = recent;
         state.error = "";
-        render();
-        if (state.boothMode === "scan" && !scannerInstance) {
-          startBoothScanner();
-        }
+        if (state.ready) render();
       }
     } catch (e) {
-      if (active) { state.error = e.message; render(); }
+      if (active) { state.error = e.message; if (state.ready) render(); }
     }
   }
 
@@ -407,13 +429,9 @@
       const allBooths = await service.clubs();
       booths.splice(0, booths.length, ...allBooths);
       active = true;
+      await refreshMetrics();
       state.ready = true;
       render();
-
-      await refreshMetrics();
-      if (state.boothMode === "scan") {
-        startBoothScanner();
-      }
 
       // 실시간 스탬프 감시
       stops.push(service.watchBooth(state.booth, () => refreshMetrics()));
@@ -433,6 +451,14 @@
 
   mount({
     view: booth,
+    onRender() {
+      if (active && state.boothMode === "scan") {
+        const readerEl = panel.querySelector("#ft-booth-reader");
+        if (readerEl && !readerEl.querySelector("video")) {
+          startBoothScanner();
+        }
+      }
+    },
     async onLogout() {
       dispose();
       await service.logout();
@@ -465,7 +491,6 @@
       if (action === "mode-scan") {
         state.boothMode = "scan";
         render();
-        startBoothScanner();
       } else if (action === "mode-manual") {
         state.boothMode = "manual";
         stopBoothScanner();

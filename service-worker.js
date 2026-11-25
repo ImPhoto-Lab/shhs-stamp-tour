@@ -3,7 +3,7 @@
  * PWA 설치 가능 요건 충족 및 기본 네트워크 전략
  */
 
-const CACHE_NAME = "stamp-tour-c-v3";
+const CACHE_NAME = "stamp-tour-c-v4";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
