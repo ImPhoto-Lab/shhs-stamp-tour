@@ -396,9 +396,13 @@
     ];
 
     try {
-      const access = await service.staffAccess("L2", true);
-      if (!access.ok) { window.location.replace("portal.html?role=booth"); return; }
-      state.booth = access.profile.club_id;
+      let targetBooth = state.booth;
+      if (!targetBooth) {
+        try { targetBooth = JSON.parse(sessionStorage.getItem("session_token") || "null")?.boothId || ""; } catch (_) {}
+      }
+      const current = await service.staffAccess("L2", targetBooth);
+      if (!current) { window.location.replace("portal.html?role=booth"); return; }
+      state.booth = current.club_id;
 
       const allBooths = await service.clubs();
       booths.splice(0, booths.length, ...allBooths);
@@ -414,17 +418,26 @@
       // 실시간 스탬프 감시
       stops.push(service.watchBooth(state.booth, () => refreshMetrics()));
       // 단일 기기 세션 감시
-      stops.push(service.watchStaff(access.profile.email, access.profile.active_session_id, terminate));
+      stops.push(service.watchStaff(current, terminate));
 
     } catch (e) {
-      state.error = e.message;
-      state.ready = true;
-      render();
+      if (e.code === "ACCESS_DENIED") {
+        await terminate();
+      } else {
+        state.error = e.message;
+        state.ready = true;
+        render();
+      }
     }
   }
 
   mount({
     view: booth,
+    async onLogout() {
+      dispose();
+      await service.logout();
+      window.location.replace("portal.html?role=booth");
+    },
     async onSubmit(form) {
       if (form.dataset.form === "manual-grant") {
         const input = form.querySelector("#ft-manual-grant-id");
