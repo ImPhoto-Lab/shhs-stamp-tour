@@ -93,8 +93,9 @@ stamp-tour/
 2. 대시보드의 **SQL Editor**에 [`schema.sql`](./schema.sql) 전체 내용을 복사해 붙여넣고 **RUN**을 실행합니다.
    - 필요에 따라 파일 하단의 `INSERT INTO public.clubs` 시드 구문을 실제 행사 부스 목록으로 수정한 뒤 실행하세요.
 3. **운영진(L2) 및 관리자(L3) 계정 생성:**
-   - `Authentication -> Users -> Add user`에서 계정을 생성합니다 (예: 총괄 관리자 `admin@festival.com`, 부스 `booth-01@festival.com`).
+   - `Authentication -> Users -> Add user`에서 계정을 생성합니다 (예: 총괄 관리자 `admin@festival.com`, `teacher1@festival.com` 등 여러 관리자 계정 생성 가능, 부스 `booth-01@festival.com`).
    - `Table Editor -> public.users` 테이블에서 관리자 계정의 `role`을 `'L3'`로, 각 부스 계정의 `role`을 `'L2'` 및 `club_id`를 담당 부스 ID(예: `'booth-01'`)로 지정합니다 (`is_approved = true`).
+   - 총괄 관리자 로그인 화면에서는 기본 `admin` 외에도 등록된 관리자 ID(`teacher1` 등)를 입력해 여러 관리자가 서로 튕기지 않고 동시 접속할 수 있습니다.
 
 ### 2. `config.js` 설정 수정
 [`config.js`](./config.js) 상단의 설정값을 본인 환경에 맞게 수정합니다:
