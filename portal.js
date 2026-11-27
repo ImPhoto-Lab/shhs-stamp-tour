@@ -19,6 +19,7 @@
     navigate,
   } = ui;
   const desktop = window.matchMedia("(min-width: 761px)");
+  state.adminId = "admin";
 
   function portal(role) {
     const pConf = window.APP_CONFIG?.portal || {};
@@ -30,10 +31,16 @@
     const roleBooth = pConf.roleBooth || "부스 담당자";
     const roleAdmin = pConf.roleAdmin || "총괄 관리자";
     const boothLabel = pConf.boothSelectLabel || "담당 부스";
+    const adminIdLabel = pConf.adminIdLabel || "관리자 ID";
+    const adminIdPlaceholder = pConf.adminIdPlaceholder || "예: admin 또는 teacher1";
     const pwLabel = pConf.passwordLabel || "비밀번호";
     const pwPlaceholder = pConf.passwordPlaceholder || "운영진 비밀번호";
     const btnSubmit = role === "booth" ? "부스 운영 시작하기" : (pConf.btnLogin || "관리자 화면 들어가기");
     const btnBack = pConf.btnBackToStudent || "학생 화면으로 돌아가기";
+
+    const accountField = role === "booth"
+      ? `<label for="ft-portal-booth-${role}">${E(boothLabel)}<select name="booth" id="ft-portal-booth-${role}">${booths.map((b, i) => `<option value="${E(b.id)}" ${b.id === state.booth ? "selected" : ""}>${E(b.name)}</option>`).join("")}</select></label>`
+      : `<label for="ft-portal-admin-id">${E(adminIdLabel)}<input type="text" id="ft-portal-admin-id" name="adminId" value="${E(state.adminId)}" placeholder="${E(adminIdPlaceholder)}" autocomplete="username"></label>`;
 
     return `<article class="ft-phone ft-mobile-portal">${statusbar()}<div class="ft-login">${brand()}${loginArt(role)}<div class="ft-login-title"><span class="ft-eyebrow">${E(chip)}</span><h1>${title}</h1><p>${E(desc)}</p></div><div class="ft-role-choice" aria-label="운영 역할">${[
       ["booth", "store", roleBooth],
@@ -45,7 +52,7 @@
       )
       .join(
         "",
-      )}</div><form class="ft-form" data-form="portal">${role === "booth" ? `<label for="ft-portal-booth-${role}">${E(boothLabel)}<select name="booth" id="ft-portal-booth-${role}">${booths.map((b, i) => `<option value="${E(b.id)}" ${b.id === state.booth ? "selected" : ""}>${E(b.name)}</option>`).join("")}</select></label>` : ""}<label for="ft-portal-password-${role}">${E(pwLabel)}<input type="password" id="ft-portal-password-${role}" name="password" placeholder="${E(pwPlaceholder)}" autocomplete="off"></label><div class="ft-error" role="alert"></div><button type="submit" class="ft-primary cursor-interaction">${E(btnSubmit)}${I("arrow-right")}</button></form><p class="ft-small-note">허가된 운영진 계정의 비밀번호를 입력해 주세요.</p><button type="button" class="ft-link-button cursor-interaction" style="margin:17px auto 0" data-action="go-student">${I("arrow-left")}${E(btnBack)}</button></div></article>`;
+      )}</div><form class="ft-form" data-form="portal">${accountField}<label for="ft-portal-password-${role}">${E(pwLabel)}<input type="password" id="ft-portal-password-${role}" name="password" placeholder="${E(pwPlaceholder)}" autocomplete="current-password"></label><div class="ft-error" role="alert"></div><button type="submit" class="ft-primary cursor-interaction">${E(btnSubmit)}${I("arrow-right")}</button></form><p class="ft-small-note">허가된 운영진 계정의 인증 정보를 입력해 주세요.</p><button type="button" class="ft-link-button cursor-interaction" style="margin:17px auto 0" data-action="go-student">${I("arrow-left")}${E(btnBack)}</button></div></article>`;
   }
 
   function desktopPortal() {
@@ -55,12 +62,14 @@
     const chip = fConf.categoryChip || "함께 만드는 동아리제";
     const title = pConf.desktopTitle || "학생들의 하루에<br><span class=\"ft-highlight\">설렘을 더하는 일.</span>";
     const desc = pConf.desktopDesc || `참여 현황부터 도장 랭킹까지,<br>${E(config.eventName)}를 한곳에서 운영해요.`;
+    const adminIdLabel = pConf.adminIdLabel || "관리자 ID";
+    const adminIdPlaceholder = pConf.adminIdPlaceholder || "예: admin 또는 teacher1";
     const pwLabel = pConf.passwordLabel || "비밀번호";
     const pwPlaceholder = pConf.passwordPlaceholder || "운영진 비밀번호";
     const btnSubmit = pConf.btnLogin || "관리자 화면 들어가기";
     const btnBack = pConf.btnBackToStudent || "학생 화면으로 돌아가기";
 
-    return `<article class="ft-admin-login"><section class="ft-desktop-login-art">${brand()}${loginArt("admin")}<div><span class="ft-chip">${I("heart-handshake")}${E(chip)}</span><h1>${title}</h1><p>${desc}</p></div></section><section class="ft-desktop-login-form"><span class="ft-chip">${I("layout-dashboard")}총괄 관리자 전용</span><h2>관리자 로그인</h2><p>운영진 비밀번호로 관리 화면에 들어가세요.</p>${roleChoices()}<form class="ft-form" data-form="portal"><label for="ft-admin-desktop-password">${E(pwLabel)}<input type="password" id="ft-admin-desktop-password" name="password" placeholder="${E(pwPlaceholder)}" autocomplete="off"></label><div class="ft-error" role="alert"></div><button type="submit" class="ft-primary cursor-interaction">${E(btnSubmit)} ${I("arrow-right")}</button></form><p class="ft-small-note">허가된 운영진 계정의 비밀번호를 입력해 주세요.</p><a class="ft-link-button" href="index.html">${E(btnBack)}</a></section></article>`;
+    return `<article class="ft-admin-login"><section class="ft-desktop-login-art">${brand()}${loginArt("admin")}<div><span class="ft-chip">${I("heart-handshake")}${E(chip)}</span><h1>${title}</h1><p>${desc}</p></div></section><section class="ft-desktop-login-form"><span class="ft-chip">${I("layout-dashboard")}총괄 관리자 전용</span><h2>관리자 로그인</h2><p>관리자 ID와 비밀번호로 관리 화면에 들어가세요.</p>${roleChoices()}<form class="ft-form" data-form="portal"><label for="ft-admin-desktop-id">${E(adminIdLabel)}<input type="text" id="ft-admin-desktop-id" name="adminId" value="${E(state.adminId)}" placeholder="${E(adminIdPlaceholder)}" autocomplete="username"></label><label for="ft-admin-desktop-password">${E(pwLabel)}<input type="password" id="ft-admin-desktop-password" name="password" placeholder="${E(pwPlaceholder)}" autocomplete="current-password"></label><div class="ft-error" role="alert"></div><button type="submit" class="ft-primary cursor-interaction">${E(btnSubmit)} ${I("arrow-right")}</button></form><p class="ft-small-note">허가된 운영진 계정의 인증 정보를 입력해 주세요.</p><a class="ft-link-button" href="index.html">${E(btnBack)}</a></section></article>`;
   }
 
   function roleChoices() {
@@ -105,6 +114,8 @@
       if (action !== "portal-role" || signingIn) return;
       const select = panel.querySelector('select[name="booth"]');
       if (select) state.booth = select.value;
+      const adminInput = panel.querySelector('input[name="adminId"]');
+      if (adminInput) state.adminId = adminInput.value.trim();
       state.role = button.dataset.role;
       render(); panel.querySelector(`[data-role="${state.role}"]`)?.focus();
     },
@@ -113,11 +124,14 @@
       const data = new FormData(form), password = String(data.get("password") || "").trim();
       const role = state.role === "admin" ? "L3" : "L2";
       const boothId = String(data.get("booth") || state.booth || "");
+      const adminId = String(data.get("adminId") ?? state.adminId ?? "admin").trim();
+      state.adminId = adminId;
       if (!password) throw new Error("비밀번호를 입력해 주세요.");
+      if (role === "L3" && !adminId) throw new Error("관리자 ID를 입력해 주세요.");
       if (role === "L2" && !booths.some(booth => booth.id === boothId)) throw new Error("담당 부스를 선택해 주세요.");
       signingIn = true;
       try {
-        const current = await service.staffLogin(role, boothId, password);
+        const current = await service.staffLogin(role, role === "L3" ? adminId : boothId, password);
         form.reset();
         navigate(service.staffRoute(current));
       } finally { signingIn = false; }

@@ -135,6 +135,8 @@ window.APP_CONFIG = {
     roleBooth: "부스 담당자",
     roleAdmin: "총괄 관리자",
     boothSelectLabel: "담당 부스",
+    adminIdLabel: "관리자 ID",
+    adminIdPlaceholder: "예: admin 또는 teacher1",
     passwordLabel: "비밀번호",
     passwordPlaceholder: "운영진 비밀번호",
     btnLogin: "관리 화면 들어가기",

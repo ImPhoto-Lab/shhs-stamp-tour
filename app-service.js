@@ -143,9 +143,10 @@
       count: Number(row.visitor_count), rank: row.rank == null ? null : Number(row.rank),
     }));
   }
-  async function staffLogin(role, boothId, password) {
-    const email = role === "L3" ? `admin${authDomain()}` : `${boothId}${authDomain()}`;
-    result(await client().auth.signInWithPassword({ email, password }), "비밀번호를 확인해 주세요.");
+  async function staffLogin(role, accountOrBoothId, password) {
+    const rawId = String(accountOrBoothId || (role === "L3" ? "admin" : "")).trim();
+    const email = rawId.includes("@") ? rawId : `${rawId}${authDomain()}`;
+    result(await client().auth.signInWithPassword({ email, password }), "아이디 또는 비밀번호를 확인해 주세요.");
     try {
       const current = await profile();
       // Retain the original L2 activation flow; failed updates do not grant access.
@@ -153,7 +154,7 @@
         result(await client().from("users").update({ is_approved: true }).eq("student_id", email), "부스 계정을 활성화하지 못했어요.");
         current.is_approved = true;
       }
-      if (!current?.is_approved || current.role !== role || (role === "L2" && current.club_id !== boothId)) throw new Error("선택한 역할 또는 부스에 접근할 수 없는 계정이에요.");
+      if (!current?.is_approved || current.role !== role || (role === "L2" && current.club_id !== rawId)) throw new Error("선택한 역할 또는 부스에 접근할 수 없는 계정이에요.");
       const token = crypto.randomUUID();
       result(await client().from("users").update({ active_session_id: token }).eq("student_id", email), "로그인 세션을 시작하지 못했어요. 다시 시도해 주세요.");
       localStorage.setItem("current_session_token", token);
