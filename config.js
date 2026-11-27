@@ -1,7 +1,7 @@
 /**
  * Festival Stamp Tour - Application Configuration & i18n
  * 축제 명칭, 부스 목표, 시스템 안내 문구 및 에러 메시지 중앙 관리 모듈
- * 
+ *
  * 💡 본 저장소를 포크하여 사용 시, 아래 APP_CONFIG 내의 설정값만 수정하면
  *    Supabase 연결, 행사 명칭, 학번 자릿수, 텍스트 문구, 부스 아이콘까지
  *    모든 화면에 자동으로 100% 동적 반영됩니다.
@@ -11,8 +11,8 @@ window.APP_CONFIG = {
   // 1. Supabase 클라우드 데이터베이스 연결 설정
   // 💡 포크 후 본인의 Supabase 프로젝트 URL과 Publishable Anon Key로 교체해 주세요.
   supabase: {
-    url: "https://ivhdgijhvvvdcxsfmlpd.supabase.co/",
-    anonKey: "sb_publishable_hMMfcKDUhJvNJzq5MFaA8A_u2tM7Nks"
+    url: "https://zwsrsapgirvzngdxtiqs.supabase.co",
+    anonKey: "sb_publishable_b4_O1BqurzpZuLN87ACpZg_g73kYnR-"
   },
 
   // 2. 인증 및 학생 식별 규칙 설정
@@ -20,14 +20,14 @@ window.APP_CONFIG = {
     domain: "@festival.com",          // 내부 식별용 가상 이메일 도메인
     studentIdPattern: "^\\d{4,8}$",   // 학번 정규식 (기본: 4~8자리 숫자, 필요시 "^[A-Za-z0-9]{4,10}$" 등으로 변경 가능)
     studentIdPlaceholder: "학번을 입력하세요 (예: 20101)",
-    studentIdHelp: "4~8자리 숫자 학번"
+    studentIdHelp: "5자리 숫자 학번"
   },
 
   // 3. 행사 기본 브랜드 및 헤더 메타 정보
   festival: {
-    title: "동아리 발표회",
-    subTitle: "동아리제 스탬프 투어",
-    categoryChip: "함께 만드는 동아리제",
+    title: "서현고 동아리 발표회",
+    subTitle: "서현고 동아리 발표회 스탬프 투어",
+    categoryChip: "함께 만드는 동아리 발표회",
     heroTitle: "우리 동아리의<br><span class=\"ft-highlight\">반짝이는 순간들!</span>",
     heroSubtitle: "모으는 재미가 있는 동아리 발표회",
     heroSticker: "LET'S<br>COLLECT!",
@@ -74,12 +74,12 @@ window.APP_CONFIG = {
     loginTitle: "나만의 <span class=\"ft-highlight\">도장판</span>을<br>채워볼까요?",
     loginDesc: "동아리를 만나고, 오늘의 순간을 모아요.",
     loginButton: "동아리 투어 시작",
-    progressLabel: "나의 도장 컬렉션",
+    progressLabel: "나의 스탬프 컬렉션",
     scanButton: "내 스탬프 QR 코드 제시하기",
     qrModalTitle: "내 스탬프 적립 QR",
     qrModalDesc: "부스 운영진에게 이 화면의 QR 코드를 보여주세요.",
     qrModalHint: "스캔 즉시 자동으로 도장이 적립돼요.",
-    gridHeading: "어떤 도장을 모아볼까?",
+    gridHeading: "어디로 가볼까?",
     emptyBooths: "아직 등록된 부스가 없어요.",
     locationDefault: "위치 안내 준비 중"
   },
@@ -89,13 +89,13 @@ window.APP_CONFIG = {
     bannerTitle: "도장판을 모두 채웠어요!",
     bannerButton: "축하 보기",
     modalTitle: "도장판이<br><span class=\"ft-highlight\">반짝반짝 완성!</span>",
-    modalDesc: "모든 부스를 만났어요.<br>오늘의 발견을 오래 기억해 주세요.",
+    modalDesc: "모든 부스를 둘러봤네요<br>오늘의 기억이 오래 남길 바랄게요.",
     prizeNote: "경품 조건과 수령 방법은<br>행사 안내 확정 후 표시됩니다."
   },
 
   // 9. 부스 운영진 화면(L2) 세부 텍스트
   booth: {
-    title: "방문 학생에게<br><span class=\"ft-highlight\">스탬프를 지급해 주세요.</span>",
+    title: "방문 학생의 도장판에 <br><span class=\"ft-highlight\">도장을 찍어 주세요.</span>",
     desc: "학생이 제시한 QR을 스캔하거나, 학번을 직접 입력할 수 있어요.",
     tabScan: "카메라 스캔 모드",
     tabManual: "학번 직접 입력",
@@ -131,7 +131,7 @@ window.APP_CONFIG = {
     mobileTitle: "설렘을 더하는<br><span class=\"ft-highlight\">운영진 로그인</span>",
     mobileDesc: "담당하는 역할을 선택해 주세요.",
     desktopTitle: "학생들의 하루에<br><span class=\"ft-highlight\">설렘을 더하는 일.</span>",
-    desktopDesc: "참여 현황부터 도장 랭킹까지 한곳에서 운영해요.",
+    desktopDesc: "참여 현황부터 도장 랭킹까지 한곳에서 볼 수 있어요.",
     roleBooth: "부스 담당자",
     roleAdmin: "총괄 관리자",
     boothSelectLabel: "담당 부스",
@@ -145,23 +145,18 @@ window.APP_CONFIG = {
   credits: {
     title: "제작 크레딧",
     subtitle: "Festival Stamp Tour System",
-    teamName: "FESTIVAL DEV & DESIGN TEAM",
-    description: "본 스탬프 투어 및 실시간 보안 관제 플랫폼은 참가자들의 즐거운 축제 경험과 공정한 이벤트 운영을 위해 제작되었습니다.",
+    teamName: "SHIC",
+    description: "본 스탬프 투어는 참가자들의 즐거운 축제 경험과 공정한 이벤트 운영을 위해 제작되었습니다.",
     members: [
       {
         role: "Project Architecture & Full-stack",
-        name: "개발 총괄",
-        desc: "시스템 아키텍처, 실시간 보안 검증 파이프라인 및 DB 설계"
+        name: "20322 조하진",
+        desc: "시스템 아키텍처, 실시간 보안 검증 파이프라인 설계"
       },
       {
         role: "UI/UX & Design System",
-        name: "디자인 총괄",
+        name: "20824 조하진",
         desc: "미니멀 스티커북 테마 및 반응형 인터랙션 구현"
-      },
-      {
-        role: "Security & Infrastructure",
-        name: "인프라 / 보안",
-        desc: "Supabase DB 최적화 및 보안 검증 체계"
       }
     ],
     techStack: "HTML5 · CSS3 (Custom Stickerbook) · Vanilla JS · Supabase (PostgreSQL)",
